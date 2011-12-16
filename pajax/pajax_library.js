@@ -45,21 +45,25 @@ function __pajax_get_next_id() {
 */
 var __pajax_http_obj = null;
 
+
 /*
 	Method: toJSON
 	JSON Serializer/deserializer methods
 */
-Object.prototype.toJSON = function() {
+
+function pAjax() { }
+
+pAjax.prototype.toJSON = function() {
 	var stack=[];
 	var oBag;
 	var sBag;
 	for (property in this) {
-		if (typeof this[property] != "function") {
-			stack.push('"' + property + '": ' + (this[property] == null ? "null" : this[property].toJSON()));
+		if (typeof this[property] !== "function") {
+			stack.push('"' + property + '": ' + (this[property] === null ? "null" : this[property].toJSON()));
 		}
 	}
 	// Only cares if this is a subclass of Object
-	if (this.getClassName() != "Object") {
+	if (this.getClassName() !== "Object") {
 		sBag = "";
 		oBag = this.onDeflate();
 		if (oBag) {
@@ -68,12 +72,12 @@ Object.prototype.toJSON = function() {
 		stack.push('"__pajax_class_hint" : { "className" : "' + this.getClassName() + '" , "bag" : "' + sBag + '" }');
 	}
 	return "{" + stack.join(", ") + "}";
-}
+};
 
-Object.prototype.onDeflate = function() { return null; }
-Object.prototype.onInflate = function(o) { }
+pAjax.prototype.onDeflate = function() { return null; };
+pAjax.prototype.onInflate = function(o) { };
 
-Object.prototype.fixClass = function() {
+pAjax.prototype.fixClass = function() {
 	var o;
 	if (this.__pajax_class_hint) {
 		cn = this.__pajax_class_hint.className;
@@ -81,7 +85,7 @@ Object.prototype.fixClass = function() {
 		eval("__pajax_o = new " + cn + "();");
 		o = __pajax_o;
 		for (property in this) {
-			if (typeof this[property] != "function" && property != "__pajax_class_hint") {
+			if (typeof this[property] !== "function" && property !== "__pajax_class_hint") {
 				if (this[property]) {
 					o[property] = this[property].fixClass();
 				} else {
@@ -97,21 +101,21 @@ Object.prototype.fixClass = function() {
 		// No class hint, no need to fix anything
 		return this;
 	}
-}
+};
 
-Object.prototype.getClassName = function() {
+pAjax.prototype.getClassName = function() {
 	if (this.constructor.toString) {
 		var a = this.constructor.toString().match(/function\s*(\w+)/);
-		return a && a.length == 2 ? a[1] : undefined;
+		return a && a.length === 2 ? a[1] : undefined;
 	} else {
 		return undefined;
 	}
-}
+};
 
 String.prototype.toJSON = function() {
 	var s = '"' + this.replace(/(["\\])/g, '\\$1') + '"';
 	return s.replace(/(\n)/g,"\\n");
-}
+};
     
 String.prototype.fromJSON = function() {
 	var t;
@@ -119,39 +123,40 @@ String.prototype.fromJSON = function() {
 eval("__pajax_temp = " + this.valueOf() ); 	
 
 	t = __pajax_temp;
-	if (t != null) {
+	if (t !== null) {
 		return t.fixClass();
 	}
 	return t;
-}
+};
 
 String.prototype.fixClass = function() { 
 	return this.valueOf();
-}
+};
 
 Number.prototype.toJSON = function() {
     return this.toString();
-}
+};
 
 Number.prototype.fixClass = function() { 
 	return this.valueOf();
-}
+};
     
 Boolean.prototype.toJSON = function() {
     return this.toString();
-}
+};
 
 Boolean.prototype.fixClass = function() { 
 	return this.valueOf();
-}
+};
 
 Array.prototype.toJSON = function() {
 	var stack = [];
-	for (var i=0; i < this.length; i++) {
-		stack.push(this[i] == null ? "null" : this[i].toJSON()) ;
+	var i;
+	for (i=0; i < this.length; i++) {
+		stack.push(this[i] === null ? "null" : this[i].toJSON()) ;
 	}
 	return "[" + stack.join(", ") + "]";
-}
+};
 
 Array.prototype.fixClass = function() {
 	for (i in this) {
@@ -160,15 +165,15 @@ Array.prototype.fixClass = function() {
 		}
 	}
 	return this;
-}
+};
 
 Date.prototype.onDeflate = function() {
 	return this.getTime();
-}
+};
 
 Date.prototype.onInflate = function(s) {
 	this.setTime(s);
-}
+};
    
 /*
 	Class: PajaxConnection
@@ -193,7 +198,7 @@ function PajaxConnection(url) {
 		xmlhttp object or null if not able to instanciate it
 */
 PajaxConnection.prototype.getXmlhttp = function () {
-	if (__pajax_http_obj == null) {
+	if (__pajax_http_obj === null) {
 		if (window.XMLHttpRequest) {
 			__pajax_http_obj = new XMLHttpRequest();
 		} else if (window.ActiveXObject) {
@@ -202,14 +207,14 @@ PajaxConnection.prototype.getXmlhttp = function () {
 			} catch (e) {
 				try {
 					__pajax_http_obj = new ActiveXObject("Microsoft.XMLHTTP");
-				} catch (e) {
+				} catch (e1) {
 					__pajax_http_obj = null;
 				}
 			} 
 		}
 	}
 	return __pajax_http_obj;
-}
+};
 
 /*
 	Method: sendSynch
@@ -239,7 +244,7 @@ PajaxConnection.prototype.sendSynch = function (request) {
 		return result;
 	}
 	return null;
-}
+};
 
 /*
 	Method: sendAsynch
@@ -258,15 +263,15 @@ PajaxConnection.prototype.sendAsynch = function (request, listener) {
 	var xmlhttp = this.getXmlhttp();
 	if (xmlhttp) {
 		xmlhttp.onreadystatechange = function() {  
-			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) { 
+			if (xmlhttp.readyState === 4 && xmlhttp.status === 200) { 
 				var result = xmlhttp.responseText.fromJSON(); 
 				console.log(result);
-				if (request.method != null && request.method.length > 0) {
+				if (request.method !== null && request.method.length > 0) {
 					cbmethod = "on" + request.method.substring(0, 1).toUpperCase() + request.method.substring(1, request.method.length);
 				}
 				eval("listener." + cbmethod + "(result);"); 
-			};			
-		}
+			}	
+		};
 		xmlhttp.open("POST", this.url, true);
 		xmlhttp.setRequestHeader('Content-Type','text/json');		
 		listener.onBeforeCall();
@@ -275,7 +280,7 @@ PajaxConnection.prototype.sendAsynch = function (request, listener) {
 		return true;
 	}
 	return false;
-}
+};
 
 /*
 	Method: remoteCall
@@ -308,7 +313,7 @@ PajaxConnection.prototype.remoteCall = function (id, className, method, params, 
 	} else {
 		return this.sendSynch(request);
 	}
-}
+};
 
 /*
 	Class: PajaxListener
@@ -317,7 +322,7 @@ PajaxConnection.prototype.remoteCall = function (id, className, method, params, 
 /*
 	Constructor: PajaxListener
 */
-function PajaxListener() { };
+function PajaxListener() { }
 /*
 	Method: onBeforeCall
 	Invoked before an asynchronous call takes place
